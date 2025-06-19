@@ -7,7 +7,7 @@ from ..services.client_services import client_services
 client_router = APIRouter(prefix="/client", tags=["client"])
 
 
-@client_router.post("/", response_model=ClientPublic)
+@client_router.post("", response_model=ClientPublic)
 async def create_client(client: ClientCreate, db: AsyncSession = Depends(get_db)):
     # Create new client model
     db_client = await client_services.build_model(client)
@@ -19,7 +19,7 @@ async def create_client(client: ClientCreate, db: AsyncSession = Depends(get_db)
     return ClientPublic.serialize(db_client)
 
 
-@client_router.get("/", response_model=list[ClientPublic])
+@client_router.get("", response_model=list[ClientPublic])
 async def read_clients(db: AsyncSession = Depends(get_db)):
     # Query database
     clients = await client_services.fetch_all(db)
