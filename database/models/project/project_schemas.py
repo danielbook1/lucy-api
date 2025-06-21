@@ -14,6 +14,7 @@ class ProjectBase(BaseModel):
     deadline: Optional[datetime] = None
 
     # Client
+    client_id: int
 
     # Tasks
 
@@ -32,6 +33,7 @@ class ProjectUpdate(BaseModel):
     deadline: Optional[datetime] = None
 
     # Client
+    client_id: Optional[int] = None
 
     # Tasks
 

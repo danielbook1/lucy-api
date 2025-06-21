@@ -1,6 +1,7 @@
 from pydantic import BaseModel, ConfigDict
 from typing import List, Optional
 from . import Client
+from ..project import ProjectPublic
 
 
 class ClientBase(BaseModel):
@@ -22,10 +23,12 @@ class ClientPublic(ClientBase):
     id: int
 
     # Projects
-    # projects: List[int]
+    projects: List[ProjectPublic]
 
     model_config = ConfigDict(from_attributes=True)
 
     @classmethod
     def serialize(cls, client: Client):
-        return cls.model_validate(client)
+        client_dict = client.__dict__.copy()
+        # client_dict.update({"projects": [project.id for project in client.projects]})
+        return cls.model_validate(client_dict)
