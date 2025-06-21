@@ -29,6 +29,4 @@ class ClientPublic(ClientBase):
 
     @classmethod
     def serialize(cls, client: Client):
-        client_dict = client.__dict__.copy()
-        # client_dict.update({"projects": [project.id for project in client.projects]})
-        return cls.model_validate(client_dict)
+        return cls.model_validate(client)

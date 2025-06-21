@@ -1,55 +1,55 @@
 from pydantic import BaseModel, ConfigDict
 from typing import List, Optional
 from datetime import datetime
-from . import Project
-from ..task import TaskPublic
+from . import Task
 
 
-class ProjectBase(BaseModel):
+class TaskBase(BaseModel):
     # Identification
     name: str
     description: str
-    tags: List[str] = []
 
     # Status
     start_date: datetime
     deadline: Optional[datetime] = None
     is_complete: bool = False
 
-    # Client
-    client_id: int
+    # Metrics
+    estimated_hours: Optional[float] = None
+    actual_hours: Optional[float] = None
+
+    # Project
+    project_id: int
 
 
-class ProjectCreate(ProjectBase):
+class TaskCreate(TaskBase):
     pass
 
 
-class ProjectUpdate(BaseModel):
+class TaskUpdate(BaseModel):
     # Identification
     name: Optional[str] = None
     description: Optional[str] = None
-    tags: Optional[List[str]] = None
 
     # Status
     start_date: Optional[datetime] = None
     deadline: Optional[datetime] = None
-    is_complete: bool = False
+    is_complete: Optional[bool] = None
 
-    # Client
-    client_id: Optional[int] = None
+    # Metrics
+    estimated_hours: Optional[float] = None
+    actual_hours: Optional[float] = None
 
-    # Tasks
+    # Project
+    project_id: Optional[int] = None
 
 
-class ProjectPublic(ProjectBase):
+class TaskPublic(TaskBase):
     # Identification
     id: int
-
-    # Tasks
-    tasks: List[TaskPublic]
 
     model_config = ConfigDict(from_attributes=True)
 
     @classmethod
-    def serialize(cls, project: Project):
-        return cls.model_validate(project)
+    def serialize(cls, task: Task):
+        return cls.model_validate(task)
