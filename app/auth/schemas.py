@@ -1,9 +1,14 @@
-from pydantic import BaseModel, ConfigDict, EmailStr
+from typing import List, TYPE_CHECKING
+from pydantic import BaseModel, ConfigDict
 from uuid import UUID
 
 
+if TYPE_CHECKING:
+    from app.clients.schemas import ClientRead
+
+
 class UserBase(BaseModel):
-    email: EmailStr
+    username: str
 
 
 class UserCreate(UserBase):
@@ -14,6 +19,10 @@ class UserRead(UserBase):
     id: UUID
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class UserWithClients(UserRead):
+    clients: List["ClientRead"] = []
 
 
 class UserInDB(UserBase):
