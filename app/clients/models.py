@@ -13,5 +13,4 @@ class Client(Base):
 
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
 
-    # relationship back to user
     user = relationship("User", back_populates="clients")

@@ -1,7 +1,6 @@
-# services.py
 import uuid
 from datetime import datetime, timedelta, timezone
-from fastapi import HTTPException, status, Depends
+from fastapi import Cookie, HTTPException, status, Depends
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from jose import jwt, JWTError
 from passlib.context import CryptContext
@@ -76,11 +75,11 @@ async def login_user(db: AsyncSession, form_data: OAuth2PasswordRequestForm):
     access_token = create_access_token(
         data={"sub": str(user.id)}, expires_delta=access_token_expires
     )
-    return schemas.Token(access_token=access_token, token_type="bearer")
+    return access_token
 
 
 async def get_current_user(
-    token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)
+    access_token: str | None = Cookie(default=None), db: AsyncSession = Depends(get_db)
 ) -> models.User:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -88,8 +87,11 @@ async def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
 
+    if access_token is None:
+        raise credentials_exception
+
     try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALG])
+        payload = jwt.decode(access_token, JWT_SECRET, algorithms=[JWT_ALG])
         user_id: uuid.UUID = uuid.UUID(payload.get("sub"))
         if user_id is None:
             raise credentials_exception
