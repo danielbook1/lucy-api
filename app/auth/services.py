@@ -35,21 +35,21 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
 async def create_user(
     db: AsyncSession, user_in: schemas.UserCreate
 ) -> schemas.UserRead:
-    # check if email already exists
+    # check if username already exists
     result = await db.execute(
-        select(models.User).where(models.User.email == user_in.email)
+        select(models.User).where(models.User.username == user_in.username)
     )
     existing = result.scalar_one_or_none()
     if existing:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered",
+            detail="Username already registered",
         )
 
     # create user with hashed password
     db_user = models.User(
         id=uuid.uuid4(),
-        email=user_in.email,
+        username=user_in.username,
         hashed_password=hash_password(user_in.password),
     )
     db.add(db_user)
@@ -61,14 +61,14 @@ async def create_user(
 
 async def login_user(db: AsyncSession, form_data: OAuth2PasswordRequestForm):
     result = await db.execute(
-        select(models.User).where(models.User.email == form_data.username)
+        select(models.User).where(models.User.username == form_data.username)
     )
     user = result.scalar_one_or_none()
 
     if not user or not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
+            detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
