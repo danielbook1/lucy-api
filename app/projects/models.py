@@ -5,15 +5,14 @@ from sqlalchemy.orm import relationship
 from app.database import Base
 
 
-class Client(Base):
-    __tablename__ = "clients"
+class Project(Base):
+    __tablename__ = "projects"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String, nullable=False)
 
-    projects = relationship(
-        "Project", back_populates="client", cascade="all, delete-orphan"
-    )
+    client_id = Column(UUID(as_uuid=True), ForeignKey("clients.id"), nullable=False)
+    client = relationship("Client", back_populates="projects")
 
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
-    user = relationship("User", back_populates="clients")
+    user = relationship("User", back_populates="projects")

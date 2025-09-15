@@ -21,10 +21,6 @@ class UserRead(UserBase):
     model_config = ConfigDict(from_attributes=True)
 
 
-class UserWithClients(UserRead):
-    clients: List["ClientRead"] = []
-
-
 class UserInDB(UserBase):
     id: UUID
     hashed_password: str

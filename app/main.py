@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.auth.router import router as auth_router
 from app.clients.router import router as client_router
+from app.projects.router import router as project_router
 from app.database import Base, engine
 
 
@@ -17,6 +18,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 app.include_router(auth_router, prefix="/auth", tags=["Auth"])
 app.include_router(client_router, prefix="/client", tags=["Client"])
+app.include_router(project_router, prefix="/project", tags=["Project"])
 
 origins = [
     "http://localhost",

@@ -1,3 +1,4 @@
+from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth.models import User
@@ -25,19 +26,19 @@ async def new_client(
     return client
 
 
-@router.get("/{client_id}", response_model=ClientRead)
+@router.get("/get/{client_id}", response_model=ClientRead)
 async def get_client(
     client_id: str,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    client = await read_client(db, client_id)
+    client = await read_client(db, UUID(client_id))
     if client is None or client.user_id != current_user.id:
         raise HTTPException(status_code=404, detail="Client not found")
     return client
 
 
-@router.get("/", response_model=list[ClientRead])
+@router.get("/all/", response_model=list[ClientRead])
 async def list_clients(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -46,14 +47,14 @@ async def list_clients(
     return clients
 
 
-@router.put("/{client_id}", response_model=ClientRead)
+@router.patch("/{client_id}", response_model=ClientRead)
 async def update_client(
     client_id: str,
     client_in: ClientUpdate,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    client = await read_client(db, client_id)
+    client = await read_client(db, UUID(client_id))
     if client is None or client.user_id != current_user.id:
         raise HTTPException(status_code=404, detail="Client not found")
     client = await update_client(db, client, client_in)
@@ -66,7 +67,7 @@ async def delete_client(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    client = await read_client(db, client_id)
+    client = await read_client(db, UUID(client_id))
     if client is None or client.user_id != current_user.id:
         raise HTTPException(status_code=404, detail="Client not found")
     client = await delete_client(db, client)
