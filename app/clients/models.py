@@ -10,6 +10,7 @@ class Client(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String, nullable=False)
+    notes = Column(String, nullable=True)
 
     projects = relationship(
         "Project", back_populates="client", cascade="all, delete-orphan"

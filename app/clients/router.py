@@ -48,7 +48,7 @@ async def list_clients(
 
 
 @router.patch("/{client_id}", response_model=ClientRead)
-async def update_client(
+async def update_client_endpoint(
     client_id: str,
     client_in: ClientUpdate,
     db: AsyncSession = Depends(get_db),
@@ -62,7 +62,7 @@ async def update_client(
 
 
 @router.delete("/{client_id}", response_model=ClientRead)
-async def delete_client(
+async def delete_client_endpoint(
     client_id: str,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
