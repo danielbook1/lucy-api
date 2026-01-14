@@ -1,11 +1,13 @@
 # clients/schemas.py
 from pydantic import BaseModel, ConfigDict
 from uuid import UUID
+from datetime import datetime
 
 
 class ProjectBase(BaseModel):
     name: str
-    client_id: UUID
+    client_id: UUID | None = None
+    deadline: datetime | None = None
 
 
 class ProjectCreate(ProjectBase):
@@ -15,9 +17,33 @@ class ProjectCreate(ProjectBase):
 class ProjectUpdate(BaseModel):
     name: str | None = None
     client_id: UUID | None = None
+    deadline: datetime | None = None
 
 
 class ProjectRead(ProjectBase):
+    id: UUID
+    user_id: UUID
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class TaskBase(BaseModel):
+    name: str
+    project_id: UUID | None
+    deadline: datetime | None = None
+
+
+class TaskCreate(TaskBase):
+    pass
+
+
+class TaskUpdate(BaseModel):
+    name: str | None = None
+    project_id: UUID | None = None
+    deadline: datetime | None = None
+
+
+class TaskRead(TaskBase):
     id: UUID
     user_id: UUID
 

@@ -2,7 +2,14 @@ from click import UUID
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth.models import User
-from app.projects.schemas import ProjectCreate, ProjectRead, ProjectUpdate
+from app.projects.schemas import (
+    ProjectCreate,
+    ProjectRead,
+    ProjectUpdate,
+    TaskCreate,
+    TaskRead,
+    TaskUpdate,
+)
 from app.projects.services import (
     create_project,
     read_project,
@@ -10,6 +17,11 @@ from app.projects.services import (
     read_client_projects,
     update_project,
     delete_project,
+    create_task,
+    read_task,
+    read_project_tasks,
+    update_task,
+    delete_task,
 )
 from app.database import get_db
 from app.auth.services import get_current_user
@@ -85,3 +97,50 @@ async def delete_project_endpoint(
         raise HTTPException(status_code=404, detail="Project not found")
     project = await delete_project(db, project)
     return project
+
+
+@router.post("/task/", response_model=TaskRead)
+async def new_task(
+    task_in: TaskCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    task = await create_task(db, task_in, user_id=current_user.id)
+    return task
+
+
+@router.get("/get/{project_id}/tasks", response_model=list[TaskRead])
+async def list_project_tasks(
+    project_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    tasks = await read_project_tasks(db, UUID(project_id), user_id=current_user.id)
+    return tasks
+
+
+@router.patch("/task/{task_id}", response_model=TaskRead)
+async def update_task_endpoint(
+    task_id: str,
+    task_in: TaskUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    task = await read_task(db, UUID(task_id))
+    if task is None or task.user_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Task not found")
+    task = await update_task(db, task, task_in)
+    return task
+
+
+@router.delete("/task/{task_id}", response_model=TaskRead)
+async def delete_task_endpoint(
+    task_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    task = await read_task(db, UUID(task_id))
+    if task is None or task.user_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Task not found")
+    task = await delete_task(db, task)
+    return task
