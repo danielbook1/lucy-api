@@ -6,6 +6,7 @@ from datetime import datetime
 
 class ProjectBase(BaseModel):
     name: str
+    description: str | None = None
     client_id: UUID | None = None
     deadline: datetime | None = None
 
@@ -16,6 +17,7 @@ class ProjectCreate(ProjectBase):
 
 class ProjectUpdate(BaseModel):
     name: str | None = None
+    description: str | None = None
     client_id: UUID | None = None
     deadline: datetime | None = None
 

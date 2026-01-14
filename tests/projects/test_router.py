@@ -35,6 +35,19 @@ class TestCreateProjectEndpoint:
         assert data["name"] == "Q1 Campaign"
         assert data["deadline"] is not None
 
+    def test_create_project_with_description(self, client_with_auth):
+        """Test creating project with description."""
+        response = client_with_auth.post(
+            "/project/",
+            json={"name": "Website Redesign", "description": "Complete redesign of the company website"},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["name"] == "Website Redesign"
+        assert data["description"] == "Complete redesign of the company website"
+
     def test_create_project_with_client(self, client_with_auth):
         """Test creating project with client reference."""
         # First create a client
@@ -269,6 +282,27 @@ class TestUpdateProjectEndpoint:
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert data["deadline"] is not None
+
+    def test_update_project_description(self, client_with_auth):
+        """Test updating project description."""
+        # Create a project
+        create_response = client_with_auth.post(
+            "/project/",
+            json={"name": "Test Project"},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+        project_id = create_response.json()["id"]
+        
+        # Update description
+        response = client_with_auth.patch(
+            f"/project/{project_id}",
+            json={"description": "Updated project description"},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["description"] == "Updated project description"
 
     def test_update_project_not_found(self, client_with_auth):
         """Test updating non-existent project returns 404."""
