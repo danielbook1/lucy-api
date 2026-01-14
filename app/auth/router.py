@@ -37,3 +37,14 @@ async def login_for_access_token(
 @router.get("/me", response_model=UserRead)
 async def read_users_me(current_user: User = Depends(get_current_user)):
     return current_user
+
+
+@router.post("/logout")
+async def logout():
+    response = JSONResponse(content={"message": "Logged out successfully"})
+    response.delete_cookie(
+        key="access_token",
+        httponly=True,
+        samesite="strict",
+    )
+    return response

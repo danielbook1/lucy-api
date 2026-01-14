@@ -159,3 +159,42 @@ class TestGetMeEndpoint:
         )
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+class TestLogoutEndpoint:
+    """Test logout endpoint."""
+
+    def test_logout_success(self, client_with_auth):
+        """Test successful logout clears the cookie."""
+        # First login
+        client_with_auth.post(
+            "/auth/register",
+            json={"username": "testuser", "password": "testpass123"},
+        )
+        
+        login_response = client_with_auth.post(
+            "/auth/token",
+            data={"username": "testuser", "password": "testpass123"},
+        )
+        
+        # Verify we have a token
+        assert "access_token" in login_response.cookies
+        
+        # Logout
+        logout_response = client_with_auth.post("/auth/logout")
+        
+        assert logout_response.status_code == status.HTTP_200_OK
+        assert logout_response.json()["message"] == "Logged out successfully"
+        
+        # Verify cookie is deleted (max-age=0 or expires in past)
+        set_cookie_header = logout_response.headers.get("set-cookie", "")
+        assert "access_token" in set_cookie_header
+        assert ("Max-Age=0" in set_cookie_header or "max-age=0" in set_cookie_header)
+
+    def test_logout_without_login(self, client_with_auth):
+        """Test that logout works even without being logged in."""
+        # Logout without logging in first
+        response = client_with_auth.post("/auth/logout")
+        
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["message"] == "Logged out successfully"
