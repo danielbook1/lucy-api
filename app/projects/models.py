@@ -12,6 +12,7 @@ class Project(Base):
     name = Column(String, nullable=False)
     description = Column(String, nullable=True)
     completed = Column(Boolean, nullable=False, default=False)
+    completed_on = Column(DateTime, nullable=True)
 
     deadline = Column(DateTime, nullable=True)
 

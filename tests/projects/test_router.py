@@ -62,6 +62,20 @@ class TestCreateProjectEndpoint:
         assert data["name"] == "Finished Project"
         assert data["completed"] is True
 
+    def test_create_project_with_completed_on(self, client_with_auth):
+        """Test creating project with completed_on timestamp."""
+        completion_date = (datetime.utcnow() - timedelta(days=5)).isoformat()
+        response = client_with_auth.post(
+            "/project/",
+            json={"name": "Old Finished Project", "completed": True, "completed_on": completion_date},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["completed"] is True
+        assert data["completed_on"] is not None
+
     def test_create_project_with_client(self, client_with_auth):
         """Test creating project with client reference."""
         # First create a client
@@ -338,6 +352,29 @@ class TestUpdateProjectEndpoint:
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert data["completed"] is True
+
+    def test_update_project_completed_on(self, client_with_auth):
+        """Test updating project completed_on timestamp."""
+        # Create a project
+        create_response = client_with_auth.post(
+            "/project/",
+            json={"name": "Test Project"},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+        project_id = create_response.json()["id"]
+        
+        # Set completed_on timestamp
+        completion_date = datetime.utcnow().isoformat()
+        response = client_with_auth.patch(
+            f"/project/{project_id}",
+            json={"completed": True, "completed_on": completion_date},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["completed"] is True
+        assert data["completed_on"] is not None
 
     def test_update_project_not_found(self, client_with_auth):
         """Test updating non-existent project returns 404."""

@@ -8,6 +8,7 @@ class ProjectBase(BaseModel):
     name: str
     description: str | None = None
     completed: bool = False
+    completed_on: datetime | None = None
     client_id: UUID | None = None
     deadline: datetime | None = None
 
@@ -20,6 +21,7 @@ class ProjectUpdate(BaseModel):
     name: str | None = None
     description: str | None = None
     completed: bool | None = None
+    completed_on: datetime | None = None
     client_id: UUID | None = None
     deadline: datetime | None = None
 
