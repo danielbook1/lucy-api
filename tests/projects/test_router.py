@@ -20,6 +20,7 @@ class TestCreateProjectEndpoint:
         assert data["name"] == "Website Redesign"
         assert "id" in data
         assert data["user_id"] == str(client_with_auth.test_user.id)
+        assert data["completed"] is False  # Default value
 
     def test_create_project_with_deadline(self, client_with_auth):
         """Test creating project with deadline."""
@@ -47,6 +48,19 @@ class TestCreateProjectEndpoint:
         data = response.json()
         assert data["name"] == "Website Redesign"
         assert data["description"] == "Complete redesign of the company website"
+
+    def test_create_project_mark_completed(self, client_with_auth):
+        """Test creating project with completed status."""
+        response = client_with_auth.post(
+            "/project/",
+            json={"name": "Finished Project", "completed": True},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["name"] == "Finished Project"
+        assert data["completed"] is True
 
     def test_create_project_with_client(self, client_with_auth):
         """Test creating project with client reference."""
@@ -303,6 +317,27 @@ class TestUpdateProjectEndpoint:
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert data["description"] == "Updated project description"
+
+    def test_update_project_completed(self, client_with_auth):
+        """Test updating project completed status."""
+        # Create a project
+        create_response = client_with_auth.post(
+            "/project/",
+            json={"name": "Test Project"},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+        project_id = create_response.json()["id"]
+        
+        # Mark as completed
+        response = client_with_auth.patch(
+            f"/project/{project_id}",
+            json={"completed": True},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["completed"] is True
 
     def test_update_project_not_found(self, client_with_auth):
         """Test updating non-existent project returns 404."""
