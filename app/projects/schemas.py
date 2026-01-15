@@ -36,6 +36,8 @@ class ProjectRead(ProjectBase):
 class TaskBase(BaseModel):
     name: str
     project_id: UUID | None
+    completed: bool = False
+    completed_on: datetime | None = None
     deadline: datetime | None = None
 
 
@@ -46,6 +48,8 @@ class TaskCreate(TaskBase):
 class TaskUpdate(BaseModel):
     name: str | None = None
     project_id: UUID | None = None
+    completed: bool | None = None
+    completed_on: datetime | None = None
     deadline: datetime | None = None
 
 

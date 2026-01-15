@@ -30,6 +30,8 @@ class Task(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String, nullable=False)
+    completed = Column(Boolean, nullable=False, default=False)
+    completed_on = Column(DateTime, nullable=True)
 
     deadline = Column(DateTime, nullable=True)
 

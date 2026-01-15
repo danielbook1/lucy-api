@@ -456,6 +456,7 @@ class TestCreateTaskEndpoint:
         assert data["name"] == "Build UI"
         assert data["project_id"] == project_id
         assert data["user_id"] == str(client_with_auth.test_user.id)
+        assert data["completed"] is False  # Default value
 
     def test_create_task_with_deadline(self, client_with_auth):
         """Test creating task with deadline."""
@@ -478,6 +479,27 @@ class TestCreateTaskEndpoint:
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert data["deadline"] is not None
+
+    def test_create_task_with_completed(self, client_with_auth):
+        """Test creating completed task."""
+        # Create a project first
+        project_response = client_with_auth.post(
+            "/project/",
+            json={"name": "Test Project"},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+        project_id = project_response.json()["id"]
+        
+        # Create completed task
+        response = client_with_auth.post(
+            "/project/task/",
+            json={"name": "Done Task", "project_id": project_id, "completed": True},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["completed"] is True
 
     def test_create_task_missing_name(self, client_with_auth):
         """Test that missing task name returns 422."""
@@ -633,6 +655,64 @@ class TestUpdateTaskEndpoint:
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert data["deadline"] is not None
+
+    def test_update_task_completed(self, client_with_auth):
+        """Test updating task completed status."""
+        # Create project and task
+        project_response = client_with_auth.post(
+            "/project/",
+            json={"name": "Test Project"},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+        project_id = project_response.json()["id"]
+        
+        task_response = client_with_auth.post(
+            "/project/task/",
+            json={"name": "Test Task", "project_id": project_id},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+        task_id = task_response.json()["id"]
+        
+        # Mark task as completed
+        response = client_with_auth.patch(
+            f"/project/task/{task_id}",
+            json={"completed": True},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["completed"] is True
+
+    def test_update_task_completed_on(self, client_with_auth):
+        """Test updating task completed_on timestamp."""
+        # Create project and task
+        project_response = client_with_auth.post(
+            "/project/",
+            json={"name": "Test Project"},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+        project_id = project_response.json()["id"]
+        
+        task_response = client_with_auth.post(
+            "/project/task/",
+            json={"name": "Test Task", "project_id": project_id},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+        task_id = task_response.json()["id"]
+        
+        # Set completed_on timestamp
+        completion_date = datetime.utcnow().isoformat()
+        response = client_with_auth.patch(
+            f"/project/task/{task_id}",
+            json={"completed": True, "completed_on": completion_date},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["completed"] is True
+        assert data["completed_on"] is not None
 
     def test_update_task_not_found(self, client_with_auth):
         """Test updating non-existent task returns 404."""
