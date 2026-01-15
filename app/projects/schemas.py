@@ -11,6 +11,7 @@ class ProjectBase(BaseModel):
     completed_on: datetime | None = None
     client_id: UUID | None = None
     deadline: datetime | None = None
+    rate: float | None = None
 
 
 class ProjectCreate(ProjectBase):
@@ -24,6 +25,7 @@ class ProjectUpdate(BaseModel):
     completed_on: datetime | None = None
     client_id: UUID | None = None
     deadline: datetime | None = None
+    rate: float | None = None
 
 
 class ProjectRead(ProjectBase):

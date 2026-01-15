@@ -97,6 +97,63 @@ class TestCreateProjectEndpoint:
         data = response.json()
         assert data["client_id"] == client_id
 
+    def test_create_project_with_rate(self, client_with_auth):
+        """Test creating project with explicit rate."""
+        response = client_with_auth.post(
+            "/project/",
+            json={"name": "Expensive Project", "rate": 200.0},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["name"] == "Expensive Project"
+        assert data["rate"] == 200.0
+
+    def test_create_project_inherits_client_rate(self, client_with_auth):
+        """Test that project inherits rate from client when project rate is None."""
+        # Create a client with a rate
+        client_response = client_with_auth.post(
+            "/client/",
+            json={"name": "Premium Client", "rate": 150.75},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+        client_id = client_response.json()["id"]
+        
+        # Create project for that client without specifying rate
+        response = client_with_auth.post(
+            "/project/",
+            json={"name": "Premium Project", "client_id": client_id},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["client_id"] == client_id
+        assert data["rate"] == 150.75
+
+    def test_create_project_explicit_rate_overrides_client_rate(self, client_with_auth):
+        """Test that explicit project rate overrides client rate."""
+        # Create a client with a rate
+        client_response = client_with_auth.post(
+            "/client/",
+            json={"name": "Standard Client", "rate": 100.0},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+        client_id = client_response.json()["id"]
+        
+        # Create project for that client with explicit rate
+        response = client_with_auth.post(
+            "/project/",
+            json={"name": "Custom Rate Project", "client_id": client_id, "rate": 250.0},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["client_id"] == client_id
+        assert data["rate"] == 250.0  # Should be explicit rate, not client's rate
+
     def test_create_project_missing_name(self, client_with_auth):
         """Test that missing name returns 422."""
         response = client_with_auth.post(
@@ -375,6 +432,87 @@ class TestUpdateProjectEndpoint:
         data = response.json()
         assert data["completed"] is True
         assert data["completed_on"] is not None
+
+    def test_update_project_rate(self, client_with_auth):
+        """Test updating project rate."""
+        # Create a project
+        create_response = client_with_auth.post(
+            "/project/",
+            json={"name": "Test Project"},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+        project_id = create_response.json()["id"]
+        
+        # Update rate
+        response = client_with_auth.patch(
+            f"/project/{project_id}",
+            json={"rate": 175.50},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["rate"] == 175.50
+
+    def test_update_project_assign_client_inherits_rate(self, client_with_auth):
+        """Test that assigning a client to a project inherits the client's rate."""
+        # Create a project without client or rate
+        project_response = client_with_auth.post(
+            "/project/",
+            json={"name": "Unassigned Project"},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+        project_id = project_response.json()["id"]
+        
+        # Create a client with a rate
+        client_response = client_with_auth.post(
+            "/client/",
+            json={"name": "New Client", "rate": 125.0},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+        client_id = client_response.json()["id"]
+        
+        # Assign client to project
+        response = client_with_auth.patch(
+            f"/project/{project_id}",
+            json={"client_id": client_id},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["client_id"] == client_id
+        assert data["rate"] == 125.0
+
+    def test_update_project_assign_client_preserves_explicit_rate(self, client_with_auth):
+        """Test that explicit rate is preserved when assigning a client."""
+        # Create a project with explicit rate
+        project_response = client_with_auth.post(
+            "/project/",
+            json={"name": "Custom Rate Project", "rate": 300.0},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+        project_id = project_response.json()["id"]
+        
+        # Create a client with a different rate
+        client_response = client_with_auth.post(
+            "/client/",
+            json={"name": "Cheaper Client", "rate": 50.0},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+        client_id = client_response.json()["id"]
+        
+        # Assign client to project (without updating rate)
+        response = client_with_auth.patch(
+            f"/project/{project_id}",
+            json={"client_id": client_id},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["client_id"] == client_id
+        assert data["rate"] == 300.0  # Should keep explicit rate
 
     def test_update_project_not_found(self, client_with_auth):
         """Test updating non-existent project returns 404."""

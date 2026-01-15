@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import Column, DateTime, String, ForeignKey, Boolean
+from sqlalchemy import Column, DateTime, String, ForeignKey, Boolean, Float
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from app.database import Base
@@ -13,6 +13,7 @@ class Project(Base):
     description = Column(String, nullable=True)
     completed = Column(Boolean, nullable=False, default=False)
     completed_on = Column(DateTime, nullable=True)
+    rate = Column(Float, nullable=True)
 
     deadline = Column(DateTime, nullable=True)
 

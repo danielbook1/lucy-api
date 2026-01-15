@@ -34,6 +34,19 @@ class TestCreateClientEndpoint:
         assert data["name"] == "Simple Corp"
         assert data["notes"] is None
 
+    def test_create_client_with_rate(self, client_with_auth):
+        """Test creating client with rate."""
+        response = client_with_auth.post(
+            "/client/",
+            json={"name": "Rate Corp", "rate": 150.50},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["name"] == "Rate Corp"
+        assert data["rate"] == 150.50
+
     def test_create_client_missing_name(self, client_with_auth):
         """Test that missing name returns 422."""
         response = client_with_auth.post(

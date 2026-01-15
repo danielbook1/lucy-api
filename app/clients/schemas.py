@@ -6,6 +6,7 @@ from uuid import UUID
 class ClientBase(BaseModel):
     name: str
     notes: str | None = None
+    rate: float | None = None
 
 
 class ClientCreate(ClientBase):
@@ -15,6 +16,7 @@ class ClientCreate(ClientBase):
 class ClientUpdate(BaseModel):
     name: str | None = None
     notes: str | None = None
+    rate: float | None = None
 
 
 class ClientRead(ClientBase):
