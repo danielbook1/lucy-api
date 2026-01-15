@@ -14,6 +14,7 @@ class Project(Base):
     completed = Column(Boolean, nullable=False, default=False)
     completed_on = Column(DateTime, nullable=True)
     rate = Column(Float, nullable=True)
+    use_client_rate = Column(Boolean, nullable=False, default=True)
 
     deadline = Column(DateTime, nullable=True)
 

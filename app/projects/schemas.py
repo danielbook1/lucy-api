@@ -12,6 +12,7 @@ class ProjectBase(BaseModel):
     client_id: UUID | None = None
     deadline: datetime | None = None
     rate: float | None = None
+    use_client_rate: bool = True
 
 
 class ProjectCreate(ProjectBase):
@@ -26,6 +27,7 @@ class ProjectUpdate(BaseModel):
     client_id: UUID | None = None
     deadline: datetime | None = None
     rate: float | None = None
+    use_client_rate: bool | None = None
 
 
 class ProjectRead(ProjectBase):
