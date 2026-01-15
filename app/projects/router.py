@@ -20,6 +20,7 @@ from app.projects.services import (
     create_task,
     read_task,
     read_project_tasks,
+    read_user_tasks,
     update_task,
     delete_task,
 )
@@ -116,6 +117,15 @@ async def list_project_tasks(
     current_user: User = Depends(get_current_user),
 ):
     tasks = await read_project_tasks(db, UUID(project_id), user_id=current_user.id)
+    return tasks
+
+
+@router.get("/task/all/", response_model=list[TaskRead])
+async def list_user_tasks(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    tasks = await read_user_tasks(db, user_id=current_user.id)
     return tasks
 
 

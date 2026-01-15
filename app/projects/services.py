@@ -75,6 +75,14 @@ async def read_project_tasks(db: AsyncSession, project_id: UUID, user_id: UUID):
     return tasks
 
 
+async def read_user_tasks(db: AsyncSession, user_id: UUID):
+    result = await db.execute(
+        select(Task).where(Task.user_id == user_id)
+    )
+    tasks = result.scalars().all()
+    return tasks
+
+
 async def update_task(db: AsyncSession, task: Task, task_in: TaskUpdate):
     for field, value in task_in.model_dump(exclude_unset=True).items():
         setattr(task, field, value)

@@ -618,6 +618,73 @@ class TestListProjectTasksEndpoint:
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
+class TestListUserTasksEndpoint:
+    """Test GET /project/task/all/ endpoint."""
+
+    def test_list_user_tasks_success(self, client_with_auth):
+        """Test listing all tasks for a user across all projects."""
+        # Create two projects
+        project1_response = client_with_auth.post(
+            "/project/",
+            json={"name": "Project 1"},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+        project1_id = project1_response.json()["id"]
+        
+        project2_response = client_with_auth.post(
+            "/project/",
+            json={"name": "Project 2"},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+        project2_id = project2_response.json()["id"]
+        
+        # Create tasks in both projects
+        client_with_auth.post(
+            "/project/task/",
+            json={"name": "Task 1", "project_id": project1_id},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+        client_with_auth.post(
+            "/project/task/",
+            json={"name": "Task 2", "project_id": project1_id},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+        client_with_auth.post(
+            "/project/task/",
+            json={"name": "Task 3", "project_id": project2_id},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+        
+        # List all user tasks
+        response = client_with_auth.get(
+            "/project/task/all/",
+            cookies={"access_token": client_with_auth.test_token},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert len(data) == 3
+        task_names = {task["name"] for task in data}
+        assert task_names == {"Task 1", "Task 2", "Task 3"}
+
+    def test_list_user_tasks_empty(self, client_with_auth):
+        """Test listing all tasks for user with no tasks."""
+        response = client_with_auth.get(
+            "/project/task/all/",
+            cookies={"access_token": client_with_auth.test_token},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert len(data) == 0
+
+    def test_list_user_tasks_no_auth(self, client_with_auth):
+        """Test that listing without auth returns 401."""
+        response = client_with_auth.get("/project/task/all/")
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
 class TestUpdateTaskEndpoint:
     """Test PATCH /project/task/{task_id} endpoint."""
 
