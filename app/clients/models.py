@@ -13,7 +13,7 @@ class Client(Base):
     notes = Column(String, nullable=True)
 
     projects = relationship(
-        "Project", back_populates="client", cascade="all, delete-orphan"
+        "Project", back_populates="client"
     )
 
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)

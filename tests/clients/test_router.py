@@ -286,3 +286,42 @@ class TestDeleteClientEndpoint:
         response = client_with_auth.delete(f"/client/{fake_id}")
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    def test_delete_client_preserves_projects(self, client_with_auth):
+        """Test that deleting a client sets projects' client_id to None instead of cascade deleting."""
+        # Create a client
+        client_response = client_with_auth.post(
+            "/client/",
+            json={"name": "Client with Projects"},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+        client_id = client_response.json()["id"]
+        
+        # Create a project with this client
+        project_response = client_with_auth.post(
+            "/project/",
+            json={"name": "Test Project", "client_id": client_id},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+        project_id = project_response.json()["id"]
+        
+        # Verify project has the client
+        get_project_response = client_with_auth.get(
+            f"/project/get/{project_id}",
+            cookies={"access_token": client_with_auth.test_token},
+        )
+        assert get_project_response.json()["client_id"] == client_id
+        
+        # Delete the client
+        delete_response = client_with_auth.delete(
+            f"/client/{client_id}",
+            cookies={"access_token": client_with_auth.test_token},
+        )
+        assert delete_response.status_code == status.HTTP_200_OK
+        
+        # Verify project still exists but client_id is None
+        get_project_response = client_with_auth.get(
+            f"/project/get/{project_id}",
+            cookies={"access_token": client_with_auth.test_token},
+        )
+        assert get_project_response.status_code == status.HTTP_200_OK
+        assert get_project_response.json()["client_id"] is None

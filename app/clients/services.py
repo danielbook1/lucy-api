@@ -3,6 +3,7 @@ from uuid import UUID
 from sqlalchemy import select
 from app.clients.models import Client
 from app.clients.schemas import ClientCreate, ClientUpdate
+from app.projects.models import Project
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -35,6 +36,15 @@ async def update_client(db: AsyncSession, client: Client, client_in: ClientUpdat
 
 
 async def delete_client(db: AsyncSession, client: Client):
+    # Set client_id to None for all projects associated with this client
+    result = await db.execute(
+        select(Project).where(Project.client_id == client.id)
+    )
+    projects = result.scalars().all()
+    for project in projects:
+        project.client_id = None
+        db.add(project)
+    
     await db.delete(client)
     await db.commit()
     return client
