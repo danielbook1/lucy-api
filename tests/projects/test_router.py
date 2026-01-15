@@ -501,6 +501,28 @@ class TestCreateTaskEndpoint:
         data = response.json()
         assert data["completed"] is True
 
+    def test_create_task_with_description(self, client_with_auth):
+        """Test creating task with description."""
+        # Create a project first
+        project_response = client_with_auth.post(
+            "/project/",
+            json={"name": "Test Project"},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+        project_id = project_response.json()["id"]
+        
+        # Create task with description
+        response = client_with_auth.post(
+            "/project/task/",
+            json={"name": "Complex Task", "project_id": project_id, "description": "This task requires careful attention"},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["name"] == "Complex Task"
+        assert data["description"] == "This task requires careful attention"
+
     def test_create_task_missing_name(self, client_with_auth):
         """Test that missing task name returns 422."""
         # Create a project first
@@ -713,6 +735,34 @@ class TestUpdateTaskEndpoint:
         data = response.json()
         assert data["completed"] is True
         assert data["completed_on"] is not None
+
+    def test_update_task_description(self, client_with_auth):
+        """Test updating task description."""
+        # Create project and task
+        project_response = client_with_auth.post(
+            "/project/",
+            json={"name": "Test Project"},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+        project_id = project_response.json()["id"]
+        
+        task_response = client_with_auth.post(
+            "/project/task/",
+            json={"name": "Test Task", "project_id": project_id},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+        task_id = task_response.json()["id"]
+        
+        # Update description
+        response = client_with_auth.patch(
+            f"/project/task/{task_id}",
+            json={"description": "Updated task description"},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["description"] == "Updated task description"
 
     def test_update_task_not_found(self, client_with_auth):
         """Test updating non-existent task returns 404."""
