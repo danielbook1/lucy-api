@@ -14,7 +14,9 @@ class Project(Base):
     completed = Column(Boolean, nullable=False, default=False)
     completed_on = Column(DateTime, nullable=True)
     rate = Column(Float, nullable=True)
+    hours_worked = Column(Float, nullable=False, default=0.0)
     use_client_rate = Column(Boolean, nullable=False, default=True)
+    use_task_hours = Column(Boolean, nullable=False, default=True)
 
     deadline = Column(DateTime, nullable=True)
 
@@ -35,6 +37,7 @@ class Task(Base):
     description = Column(String, nullable=True)
     completed = Column(Boolean, nullable=False, default=False)
     completed_on = Column(DateTime, nullable=True)
+    hours_worked = Column(Float, nullable=False, default=0.0)
 
     deadline = Column(DateTime, nullable=True)
 

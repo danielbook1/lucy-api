@@ -13,6 +13,8 @@ class ProjectBase(BaseModel):
     deadline: datetime | None = None
     rate: float | None = None
     use_client_rate: bool = True
+    hours_worked: float = 0
+    use_task_hours: bool = True
 
 
 class ProjectCreate(ProjectBase):
@@ -28,6 +30,8 @@ class ProjectUpdate(BaseModel):
     deadline: datetime | None = None
     rate: float | None = None
     use_client_rate: bool | None = None
+    hours_worked: float | None = None
+    use_task_hours: bool | None = None
 
 
 class ProjectRead(ProjectBase):
@@ -44,6 +48,7 @@ class TaskBase(BaseModel):
     completed: bool = False
     completed_on: datetime | None = None
     deadline: datetime | None = None
+    hours_worked: float = 0
 
 
 class TaskCreate(TaskBase):
@@ -57,6 +62,7 @@ class TaskUpdate(BaseModel):
     completed: bool | None = None
     completed_on: datetime | None = None
     deadline: datetime | None = None
+    hours_worked: float | None = None
 
 
 class TaskRead(TaskBase):

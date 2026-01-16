@@ -134,6 +134,54 @@ class TestCreateProjectEndpoint:
         data = response.json()
         assert data["use_client_rate"] is False
 
+    def test_create_project_hours_worked_defaults_to_zero(self, client_with_auth):
+        """Test that hours_worked defaults to 0."""
+        response = client_with_auth.post(
+            "/project/",
+            json={"name": "Time Tracking Project"},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["hours_worked"] == 0
+
+    def test_create_project_with_hours_worked(self, client_with_auth):
+        """Test creating project with explicit hours_worked."""
+        response = client_with_auth.post(
+            "/project/",
+            json={"name": "Worked Project", "hours_worked": 10.5},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["hours_worked"] == 10.5
+
+    def test_create_project_use_task_hours_defaults_true(self, client_with_auth):
+        """Test that use_task_hours defaults to True."""
+        response = client_with_auth.post(
+            "/project/",
+            json={"name": "Default Task Hours Project"},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["use_task_hours"] is True
+
+    def test_create_project_use_task_hours_explicit_false(self, client_with_auth):
+        """Test creating project with use_task_hours set to False."""
+        response = client_with_auth.post(
+            "/project/",
+            json={"name": "Custom Task Hours Project", "use_task_hours": False},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["use_task_hours"] is False
+
     def test_create_project_missing_name(self, client_with_auth):
         """Test that missing name returns 422."""
         response = client_with_auth.post(
@@ -434,6 +482,48 @@ class TestUpdateProjectEndpoint:
         data = response.json()
         assert data["rate"] == 175.50
 
+    def test_update_project_hours_worked(self, client_with_auth):
+        """Test updating project hours_worked."""
+        # Create a project
+        create_response = client_with_auth.post(
+            "/project/",
+            json={"name": "Test Project"},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+        project_id = create_response.json()["id"]
+        
+        # Update hours_worked
+        response = client_with_auth.patch(
+            f"/project/{project_id}",
+            json={"hours_worked": 20.5},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["hours_worked"] == 20.5
+
+    def test_update_project_use_task_hours(self, client_with_auth):
+        """Test updating project use_task_hours."""
+        # Create a project
+        create_response = client_with_auth.post(
+            "/project/",
+            json={"name": "Test Project"},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+        project_id = create_response.json()["id"]
+        
+        # Update use_task_hours to False
+        response = client_with_auth.patch(
+            f"/project/{project_id}",
+            json={"use_task_hours": False},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["use_task_hours"] is False
+
     def test_update_project_not_found(self, client_with_auth):
         """Test updating non-existent project returns 404."""
         fake_id = str(uuid.uuid4())
@@ -580,6 +670,48 @@ class TestCreateTaskEndpoint:
         data = response.json()
         assert data["name"] == "Complex Task"
         assert data["description"] == "This task requires careful attention"
+
+    def test_create_task_hours_worked_defaults_to_zero(self, client_with_auth):
+        """Test that task hours_worked defaults to 0."""
+        # Create a project first
+        project_response = client_with_auth.post(
+            "/project/",
+            json={"name": "Test Project"},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+        project_id = project_response.json()["id"]
+        
+        # Create task
+        response = client_with_auth.post(
+            "/project/task/",
+            json={"name": "Task", "project_id": project_id},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["hours_worked"] == 0
+
+    def test_create_task_with_hours_worked(self, client_with_auth):
+        """Test creating task with explicit hours_worked."""
+        # Create a project first
+        project_response = client_with_auth.post(
+            "/project/",
+            json={"name": "Test Project"},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+        project_id = project_response.json()["id"]
+        
+        # Create task with hours_worked
+        response = client_with_auth.post(
+            "/project/task/",
+            json={"name": "Timed Task", "project_id": project_id, "hours_worked": 5.5},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["hours_worked"] == 5.5
 
     def test_create_task_missing_name(self, client_with_auth):
         """Test that missing task name returns 422."""
@@ -888,6 +1020,34 @@ class TestUpdateTaskEndpoint:
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert data["description"] == "Updated task description"
+
+    def test_update_task_hours_worked(self, client_with_auth):
+        """Test updating task hours_worked."""
+        # Create project and task
+        project_response = client_with_auth.post(
+            "/project/",
+            json={"name": "Test Project"},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+        project_id = project_response.json()["id"]
+        
+        task_response = client_with_auth.post(
+            "/project/task/",
+            json={"name": "Test Task", "project_id": project_id},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+        task_id = task_response.json()["id"]
+        
+        # Update hours_worked
+        response = client_with_auth.patch(
+            f"/project/task/{task_id}",
+            json={"hours_worked": 8.25},
+            cookies={"access_token": client_with_auth.test_token},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["hours_worked"] == 8.25
 
     def test_update_task_not_found(self, client_with_auth):
         """Test updating non-existent task returns 404."""
